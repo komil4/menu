@@ -2,6 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:menu/data.dart';
 import 'package:menu/main.dart';
+import 'package:parse_server_sdk_flutter/parse_server_sdk.dart';
 
 String homeScreen = '/';
 String restaurantScreen = '/restaurant';
@@ -14,6 +15,11 @@ List<Restaurant> getRestaurantList() {
       description: 'Sample',
       city: 'Sample',
       location: 'Sample',
+      images: [
+        'https://visitukraine.today/media/blog/previews/7AFRLndDT96gpWHK6ELk6eY7oMTVZ3tpliLBpoBx.jpg',
+        'https://foodbay.com/wiki/wp-content/uploads/2020/08/a57c938ba4-2.jpg',
+        'https://www.retail.ru/upload/medialibrary/694/3I6A5359_HDR.jpg',
+      ],
     ),
     Restaurant(
       assetName: 'places/india_chettinad_silk_maker.png',
@@ -21,6 +27,7 @@ List<Restaurant> getRestaurantList() {
       description: 'Sample',
       city: 'Sample',
       location: 'Sample',
+      images: [],
     ),
     Restaurant(
       assetName: 'places/india_tanjore_thanjavur_temple.png',
@@ -28,22 +35,49 @@ List<Restaurant> getRestaurantList() {
       description: 'Sample',
       city: 'Sample',
       location: 'Sample',
+      images: [
+        'https://visitukraine.today/media/blog/previews/7AFRLndDT96gpWHK6ELk6eY7oMTVZ3tpliLBpoBx.jpg',
+      ],
     ),
   ];
 }
 
-List<Group> getGroupList() {
+List<RestaurantGroup> getRestaurantGroupList() {
   return [
-    Group(title: 'Restaurants', restaurants: getRestaurantList()),
-    Group(title: 'Cafes', restaurants: getRestaurantList()),
+    RestaurantGroup(title: 'Restaurants', restaurants: getRestaurantList()),
+    RestaurantGroup(title: 'Cafes', restaurants: getRestaurantList()),
   ];
+}
+
+Future<List<ParseObject>> getRestaurantsGroups() async {
+  QueryBuilder<ParseObject> queryTodo =
+    QueryBuilder<ParseObject>(ParseObject('RestaurantGroup'));
+  final ParseResponse apiResponse = await queryTodo.query();
+
+  if (apiResponse.success && apiResponse.results != null) {
+    return apiResponse.results as List<ParseObject>;
+  } else {
+    return [];
+  }
+}
+
+Future<List<ParseObject>> getRestaurants() async {
+  QueryBuilder<ParseObject> queryTodo =
+  QueryBuilder<ParseObject>(ParseObject('Restaurant'));
+  final ParseResponse apiResponse = await queryTodo.query();
+
+  if (apiResponse.success && apiResponse.results != null) {
+    return apiResponse.results as List<ParseObject>;
+  } else {
+    return [];
+  }
 }
 
 class RestaurantsGroup extends StatelessWidget {
   const RestaurantsGroup({Key? key, required this.group})
       : super(key: key);
 
-  final Group group;
+  final RestaurantGroup group;
 
   @override
   Widget build(BuildContext context) {
@@ -57,14 +91,43 @@ class RestaurantsGroup extends StatelessWidget {
             Text(group.title),
             SizedBox(height: 10,),
             Expanded(
-                child: ListView.builder(
-                  padding: EdgeInsets.all(5),
-                  scrollDirection: Axis.horizontal,
-                  itemCount: group.restaurants.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    return RestaurantItem(restaurant: group.restaurants[index]);
-                  },
-                )
+              child: FutureBuilder<List<ParseObject>>(
+                future: getRestaurantsGroups(),
+                  builder: (context, snapshot) {
+                  switch (snapshot.connectionState) {
+                    case ConnectionState.none:
+                    case ConnectionState.waiting:
+                      return Center(
+                        child: Container(
+                          width: 100,
+                            height: 100,
+                            child: CircularProgressIndicator(),
+                        ),
+                      );
+                    default:
+                      if (snapshot.hasError) {
+                        return const Center(
+                          child: Text("Error get data!"),
+                        );
+                      }
+                      if (!snapshot.hasData) {
+                        return const Center(
+                          child: Text("No Data..."),
+                        );
+                      } else {
+                        return ListView.builder(
+                          padding: EdgeInsets.all(5),
+                          scrollDirection: Axis.horizontal,
+                          itemCount: snapshot.data!.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            return RestaurantItem(
+                                restaurant: group.restaurants[index]);
+                            },
+                        );
+                      }
+                  }
+                },
+              ),
             ),
           ],
         ),
@@ -159,11 +222,11 @@ class RestaurantsArea extends StatefulWidget {
 
 class _RestaurantsAreaState extends State<RestaurantsArea> {
 
-  List<Group> group =[];
+  List<RestaurantGroup> group =[];
 
   @override
   void initState() {
-    group = getGroupList();
+    //group = getGroupList();
   }
 
   @override
@@ -171,14 +234,40 @@ class _RestaurantsAreaState extends State<RestaurantsArea> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea (
-        child: ListView.builder(
-          scrollDirection: Axis.vertical,
-          itemCount: group.length,
-          itemBuilder: (BuildContext context, int index) {
-            return RestaurantsGroup(group: group[index],);
-          }
-        ),
-      )
+        child: FutureBuilder<List<ParseObject>>(
+    future: getRestaurantsGroups(),
+    builder: (context, snapshot) {
+    switch (snapshot.connectionState) {
+    case ConnectionState.none:
+    case ConnectionState.waiting:
+    return Center(
+    child: Container(
+    width: 100,
+    height: 100,
+    child: CircularProgressIndicator(),
+    ),
     );
+    default:
+    if (snapshot.hasError) {
+    return const Center(
+    child: Text("Error get data!"),
+    );
+    }
+    if (!snapshot.hasData) {
+    return const Center(
+    child: Text("No Data..."),
+    );
+    } else {
+    return ListView.builder(
+    scrollDirection: Axis.vertical,
+    itemCount: group.length,
+    itemBuilder: (BuildContext context, int index) {
+    return RestaurantsGroup(group: group[index],);
+    }
+    );
+    }
+      ),
+    ),
+        );
   }
 }
