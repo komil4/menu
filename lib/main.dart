@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:parse_server_sdk_flutter/parse_server_sdk.dart';
 import 'package:menu/restaurant_area.dart';
 import 'package:menu/restaurant_page.dart';
 import 'package:menu/restaurants_area.dart';
@@ -8,7 +9,13 @@ import 'data.dart';
 String homeScreen = '/';
 String restaurantScreen = '/restaurant';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  const keyApplicationId = 'UeTIruYYIWfOi22mUZZazYuHbypvfFJEvVZx8wSw';
+  const keyClientKey = 'b1uUf8FFJuTetVaxcZn03f9nYNNfpLYfHgwhYmks';
+  const keyParseServerUrl = 'https://parseapi.back4app.com';
+  await Parse().initialize(keyApplicationId, keyParseServerUrl,
+      clientKey: keyClientKey, autoSendSessionId: true);
   runApp(const MyApp());
 }
 
@@ -16,16 +23,16 @@ class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   final MaterialColor appColor = const MaterialColor(0xff848ddd, <int, Color>{
-    50:Color.fromRGBO(132, 141, 221, .1),
-    100:Color.fromRGBO(132, 141, 221, .2),
-    200:Color.fromRGBO(132, 141, 221, .3),
-    300:Color.fromRGBO(132, 141, 221, .4),
-    400:Color.fromRGBO(132, 141, 221, .5),
-    500:Color.fromRGBO(132, 141, 221, .6),
-    600:Color.fromRGBO(132, 141, 221, .7),
-    700:Color.fromRGBO(132, 141, 221, .8),
-    800:Color.fromRGBO(132, 141, 221, .0),
-    900:Color.fromRGBO(132, 141, 221, 1),
+    50: Color.fromRGBO(132, 141, 221, .1),
+    100: Color.fromRGBO(132, 141, 221, .2),
+    200: Color.fromRGBO(132, 141, 221, .3),
+    300: Color.fromRGBO(132, 141, 221, .4),
+    400: Color.fromRGBO(132, 141, 221, .5),
+    500: Color.fromRGBO(132, 141, 221, .6),
+    600: Color.fromRGBO(132, 141, 221, .7),
+    700: Color.fromRGBO(132, 141, 221, .8),
+    800: Color.fromRGBO(132, 141, 221, .0),
+    900: Color.fromRGBO(132, 141, 221, 1),
   });
 
   // This widget is the root of your application.
@@ -34,10 +41,10 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-          colorScheme: ColorScheme.fromSwatch(
-            primarySwatch: appColor,
-            backgroundColor: const Color.fromRGBO(238, 238, 249, 1),
-          ),
+        colorScheme: ColorScheme.fromSwatch(
+          primarySwatch: appColor,
+          backgroundColor: const Color.fromRGBO(238, 238, 249, 1),
+        ),
         scaffoldBackgroundColor: const Color.fromRGBO(248, 247, 253, 1),
         shadowColor: const Color.fromRGBO(214, 216, 229, 1),
       ),
@@ -52,7 +59,7 @@ class MyApp extends StatelessWidget {
           return MaterialPageRoute(
             builder: (context) {
               return RestaurantPage(restaurant: args.restaurant);
-              },
+            },
           );
         }
         assert(false, 'Need to implement ${settings.name}');
@@ -66,7 +73,7 @@ class MyApp extends StatelessWidget {
 class ScreenArguments {
   final Restaurant restaurant;
   ScreenArguments(this.restaurant);
-  }
+}
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);

@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:menu/data.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 
 class MenuItem extends StatelessWidget {
   const MenuItem({Key? key, required this.dish})
@@ -98,25 +99,32 @@ class MenuItem extends StatelessWidget {
 }
 
 class RestaurantPage extends StatefulWidget {
-  RestaurantPage({Key? key, required this.restaurant}) : super(key: key);
   static const routeName = '/restaurant';
-
   final Restaurant restaurant;
-  final List<DishGroup> menu = [
+
+  RestaurantPage({Key? key, required this.restaurant}) : super(key: key);
+
+  @override
+  State<RestaurantPage> createState() => _RestaurantPageState();
+}
+
+class _RestaurantPageState extends State<RestaurantPage> {
+
+  List<DishGroup> menu = [
     DishGroup(
         title: 'Salads',
         dishes: [
           Dish(
-              title: 'Salad 1',
-              image: 'https://www.allrecipes.com/thmb/SkWzUVjyC9DRoefa4t7tjkPS0no=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/14373-GreekSaladi-mfs-4X3-0354-e8388819cafa4bae843ea433258aa03d.jpg',),
+            title: 'Salad 1',
+            image: 'https://www.allrecipes.com/thmb/SkWzUVjyC9DRoefa4t7tjkPS0no=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/14373-GreekSaladi-mfs-4X3-0354-e8388819cafa4bae843ea433258aa03d.jpg',),
           Dish(
-              title: 'Salad 2',
+            title: 'Salad 2',
             image: 'https://www.thespruceeats.com/thmb/jSsI2w8FkyTDrJhQkYJ5d0HS2uE=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/green-salad-recipe-ensalada-verde-3083556-hero-01-256ac7f4162b45e5a1f82a5234a0708c.jpg',),
           Dish(
-              title: 'Salad 3',
+            title: 'Salad 3',
             image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRhZ0X8bh0blFMBhz2H2Zd9htDlsA3LX-nhhA&usqp=CAU',),
           Dish(
-              title: 'Salad 4',
+            title: 'Salad 4',
             image: 'https://img.taste.com.au/OcShKoFw/taste/2017/10/10-minute-summer-gnocchi-and-prawn-salad_1980x1320-131690-1.jpg',),
         ]
     ),
@@ -172,12 +180,14 @@ class RestaurantPage extends StatefulWidget {
         ]
     ),
   ];
+  List<bool> gropsVisiable = [];
 
   @override
-  State<RestaurantPage> createState() => _RestaurantPageState();
-}
-
-class _RestaurantPageState extends State<RestaurantPage> {
+  void initState() {
+    for (var i = 0; i < menu.length; i++) {
+      gropsVisiable.add(true);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -191,15 +201,36 @@ class _RestaurantPageState extends State<RestaurantPage> {
         child: ListView (
           children: [
             Container(
-              width: 300,
-              height: 300,
+              width: MediaQuery.of(context).size.width,
+              height: 350,
               child: Column(
                 children: [
-                  Text('Restaurant photos'),
-                  SizedBox(height: 40,),
+                  CarouselSlider.builder(
+                      itemCount: widget.restaurant.images.length,
+                      itemBuilder: (BuildContext context, int itemIndex, int pageViewIndex) {
+                        return Container(
+                          width: MediaQuery.of(context).size.width,
+                          height: 250,
+                          child: ClipRRect(
+                            child: FadeInImage.assetNetwork(
+                              fit: BoxFit.fill,
+                              image: widget.restaurant.images[itemIndex],
+                              placeholder: 'assets/loading.gif',
+                            ),
+                          ),
+                        );
+                      },
+                      options: CarouselOptions(
+                        autoPlay: false,
+                        enlargeCenterPage: true,
+                        viewportFraction: 1,
+                        aspectRatio: 2.0,
+                        initialPage: 0,
+                      ),
+                  ),
+                  SizedBox(height: 20,),
                   Text('Additional info'),
                   Text('Restaurant photos'),
-                  SizedBox(height: 40,),
                   Text('Additional info'),
                 ],
               ),
@@ -208,20 +239,24 @@ class _RestaurantPageState extends State<RestaurantPage> {
               shrinkWrap: true,
               physics: ClampingScrollPhysics(),
               scrollDirection: Axis.vertical,
-              itemCount: widget.menu.length,
+              itemCount: menu.length,
               itemBuilder: (BuildContext context, int groupIndex) {
                 return Column(
                   children: [
-                    Container(
-                      child: Text(widget.menu[groupIndex].title),
+                    TextButton(
+                        onPressed: () {
+                          gropsVisiable[groupIndex] = !gropsVisiable[groupIndex];
+                          menu[groupIndex] = DishGroup(title: menu[groupIndex].title, dishes: []);
+                          },
+                        child: Text(menu[groupIndex].title)
                     ),
                     ListView.builder(
                       shrinkWrap: true,
                       physics: ClampingScrollPhysics(),
                       scrollDirection: Axis.vertical,
-                      itemCount: widget.menu.length,
+                      itemCount:menu.length,
                       itemBuilder: (BuildContext context, int itemIndex) {
-                        return MenuItem(dish: widget.menu[groupIndex].dishes[itemIndex],);
+                        return MenuItem(dish: menu[groupIndex].dishes[itemIndex],);
                         },
                     ),
                   ],

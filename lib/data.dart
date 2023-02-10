@@ -1,28 +1,25 @@
 
 class Restaurant {
-  const Restaurant({
-    required this.assetName,
+  Restaurant({
     required this.title,
-    required this.description,
-    required this.city,
-    required this.location,
+    required this.image,
+    required this.images,
   });
 
-  final String assetName;
   final String title;
-  final String description;
-  final String city;
-  final String location;
+  final String image;
+  final List<String> images;
 }
 
-class Group {
-  const Group({
+class RestaurantGroup {
+  RestaurantGroup({
     required this.title,
-    required this.restaurants
+    required this.restaurantIds,
   });
 
   final String title;
-  final List<Restaurant> restaurants;
+  final List<String> restaurantIds;
+  List<Restaurant> restaurants = [];
 }
 
 class DishGroup {
