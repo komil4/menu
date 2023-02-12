@@ -1,43 +1,43 @@
 
 class Restaurant {
+  final String title;
+  final String image;
+  final List<String> images;
+
   Restaurant({
     required this.title,
     required this.image,
     required this.images,
   });
-
-  final String title;
-  final String image;
-  final List<String> images;
 }
 
 class RestaurantGroup {
+  final String title;
+  final List<String> restaurantIds;
+  List<Restaurant> restaurants = [];
+
   RestaurantGroup({
     required this.title,
     required this.restaurantIds,
   });
-
-  final String title;
-  final List<String> restaurantIds;
-  List<Restaurant> restaurants = [];
 }
 
 class DishGroup {
+  final String title;
+  final List<Dish> dishes;
+
   const DishGroup({
     required this.title,
     required this.dishes
   });
-
-  final String title;
-  final List<Dish> dishes;
 }
 
 class Dish {
+  final String title;
+  final String image;
+
   const Dish({
     required this.title,
     required this.image
   });
-
-  final String title;
-  final String image;
 }

@@ -34,9 +34,11 @@ class MenuItem extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.all(Radius.circular(20)),
-                child: Image(
-                  fit: BoxFit.fill,
-                  image: NetworkImage(dish.image),
+                child: FadeInImage.assetNetwork(
+                  width: MediaQuery.of(context).size.width,
+                  fit: BoxFit.cover,
+                  image: dish.image,
+                  placeholder: 'assets/loading.gif',
                 ),
               ),
               Positioned(
@@ -213,7 +215,7 @@ class _RestaurantPageState extends State<RestaurantPage> {
                           height: 250,
                           child: ClipRRect(
                             child: FadeInImage.assetNetwork(
-                              fit: BoxFit.fill,
+                              fit: BoxFit.cover,
                               image: widget.restaurant.images[itemIndex],
                               placeholder: 'assets/loading.gif',
                             ),
