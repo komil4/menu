@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:parse_server_sdk_flutter/parse_server_sdk.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -8,7 +7,7 @@ import 'globals.dart' as globals;
 class SignInPage extends StatefulWidget {
   static const routeName = '/signIn';
 
-  SignInPage({Key? key}) : super(key: key);
+  const SignInPage({Key? key}) : super(key: key);
 
   @override
   State<SignInPage> createState() => _SignInPageState();
@@ -17,7 +16,7 @@ class SignInPage extends StatefulWidget {
 class _SignInPageState extends State<SignInPage> {
   final signUpScreen = '/signUp';
   final homeScreen = '';
-  final secureStorage = FlutterSecureStorage();
+  final secureStorage = const FlutterSecureStorage();
   final controllerPassword = TextEditingController();
   final controllerUsername = TextEditingController();
 
@@ -26,7 +25,7 @@ class _SignInPageState extends State<SignInPage> {
     return Scaffold(
         body: SafeArea(
           child: Padding(
-            padding: EdgeInsets.all(20),
+            padding: const EdgeInsets.all(20),
             child: Column(
               children: [
                 const SizedBox(
@@ -37,7 +36,7 @@ class _SignInPageState extends State<SignInPage> {
                   height: 20,
                 ),
                 Padding(
-                  padding: EdgeInsets.only(
+                  padding: const EdgeInsets.only(
                     top: 10,
                   ),
                   child: TextField(
@@ -45,11 +44,11 @@ class _SignInPageState extends State<SignInPage> {
                     keyboardType: TextInputType.text,
                     textCapitalization: TextCapitalization.none,
                     autocorrect: false,
-                    decoration: InputDecoration(hintText: 'Username'),
+                    decoration: const InputDecoration(hintText: 'Username'),
                   ),
                 ),
                 Padding(
-                  padding: EdgeInsets.only(
+                  padding: const EdgeInsets.only(
                     top: 10,
                   ),
                   child: TextField(
@@ -58,30 +57,35 @@ class _SignInPageState extends State<SignInPage> {
                     keyboardType: TextInputType.text,
                     textCapitalization: TextCapitalization.none,
                     autocorrect: false,
-                    decoration: InputDecoration(hintText: 'Password'),
+                    decoration: const InputDecoration(hintText: 'Password'),
                   ),
                 ),
                 const SizedBox(
                   height: 20,
                 ),
-                Container(
+                SizedBox(
                   width: MediaQuery.of(context).size.width,
                   child: TextButton(
-                    onPressed: () => doUserLogin(),
-                    child: Padding(
+                    onPressed: () {
+                      doUserLogin();
+                      if (globals.isLoggedIn) {
+                        Navigator.popAndPushNamed(context, homeScreen);
+                      }
+                      },
+                    child: const Padding(
                       padding: EdgeInsets.only(top: 10, bottom: 10),
-                      child: const Text('Sign in'),
+                      child: Text('Sign in'),
                     ),
                   ),
                 ),
-                SizedBox(height: 50,),
-                Container(
+                const SizedBox(height: 50,),
+                SizedBox(
                   width: MediaQuery.of(context).size.width,
                   child: TextButton(
                     onPressed: () => Navigator.popAndPushNamed(context, signUpScreen),
-                    child: Padding(
+                    child: const Padding(
                       padding: EdgeInsets.only(top: 10, bottom: 10),
-                      child: const Text('Back to register'),
+                      child: Text('Back to register'),
                     ),
                   ),
                 ),
@@ -122,14 +126,13 @@ class _SignInPageState extends State<SignInPage> {
     if (response.success) {
       globals.isLoggedIn = true;
       globals.userName = username;
-      //globals.userEmail = response.result.email;
       globals.userId = response.result.objectId;
       globals.sessionToken = response.result.sessionToken;
 
+      globals.userData();
+
       await secureStorage.write(key: 'KEY_USERNAME', value: username);
       await secureStorage.write(key: 'KEY_PASSWORD', value: password);
-
-      Navigator.popAndPushNamed(context, homeScreen);
     } else {
       showError(response.error!.message);
     }

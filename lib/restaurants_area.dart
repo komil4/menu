@@ -36,19 +36,19 @@ Future<List<ParseObject>> getRestaurants(restaurantIds) async {
 }
 
 class RestaurantsGroup extends StatelessWidget {
-  const RestaurantsGroup({Key? key, required this.group}) : super(key: key);
-
   final RestaurantGroup group;
+
+  const RestaurantsGroup({Key? key, required this.group}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       height: 230,
       child: Padding(
         padding: const EdgeInsets.all(3),
         child: Column(
           children: [
-            SizedBox(
+            const SizedBox(
               height: 12,
             ),
             Padding(
@@ -61,7 +61,7 @@ class RestaurantsGroup extends StatelessWidget {
                 ),
               ),
             ),
-            SizedBox(
+            const SizedBox(
               height: 3,
             ),
             Expanded(
@@ -90,22 +90,22 @@ class RestaurantsGroup extends StatelessWidget {
                         );
                       } else {
                         return ListView.builder(
-                          padding: EdgeInsets.all(5),
+                          padding: const EdgeInsets.all(5),
                           scrollDirection: Axis.horizontal,
                           itemCount: snapshot.data!.length,
                           itemBuilder: (BuildContext context, int index) {
                             List<String> images = List<String>.from(
                                 snapshot.data![index].get("images") ?? []);
-                            Restaurant res_temp = Restaurant(
+                            Restaurant resTemp = Restaurant(
+                              objectId: snapshot.data![index].get("objectId"),
                               title: snapshot.data![index].get("title"),
-                              image: images.length > 0
+                              image: images.isNotEmpty
                                   ? images[0]
                                   : "assets/loading.gif",
                               images: images,
                             );
-                            group.restaurants.add(res_temp);
                             return RestaurantItem(
-                              restaurant: res_temp,
+                              restaurant: resTemp,
                             );
                           },
                         );
@@ -133,9 +133,9 @@ class RestaurantItem extends StatelessWidget {
       child: Container(
         width: 250,
         height: 180,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: Color.fromRGBO(39, 39, 39, 1),
-          borderRadius: const BorderRadius.all(Radius.circular(10)),
+          borderRadius: BorderRadius.all(Radius.circular(10)),
         ),
         child: Stack(children: [
           Column(children: [
@@ -162,7 +162,7 @@ class RestaurantItem extends StatelessWidget {
               padding: const EdgeInsets.all(7),
               child: Column(
                 children: [
-                  SizedBox(
+                  const SizedBox(
                     height: 2,
                   ),
                   Text(restaurant.title),
@@ -180,7 +180,7 @@ class RestaurantItem extends StatelessWidget {
               ),
               onTap: () {
                 Navigator.pushNamed(context, restaurantScreen,
-                    arguments: ScreenArguments(restaurant));
+                    arguments: ScreenArguments(restaurant, ''));
               },
             ),
           ),
@@ -198,12 +198,6 @@ class RestaurantsArea extends StatefulWidget {
 }
 
 class _RestaurantsAreaState extends State<RestaurantsArea> {
-  List<RestaurantGroup> groups = [];
-
-  @override
-  void initState() {
-    //group = getGroupList();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -220,7 +214,7 @@ class _RestaurantsAreaState extends State<RestaurantsArea> {
                     child: Container(
                       width: 100,
                       height: 100,
-                      child: CircularProgressIndicator(),
+                      child: const CircularProgressIndicator(),
                     ),
                   );
                 default:
@@ -244,14 +238,13 @@ class _RestaurantsAreaState extends State<RestaurantsArea> {
                           title: snapshot.data![index].get("title"),
                           restaurantIds: restaurantIds,
                         );
-                        groups.add(groupTemp);
                         return RestaurantsGroup(group: groupTemp);
                       },
                     );
                   }
-                  ;
               }
-            }),
+            }
+            ),
       ),
     );
   }

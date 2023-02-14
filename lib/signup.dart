@@ -9,7 +9,7 @@ import 'globals.dart' as globals;
 class SignUpPage extends StatefulWidget {
   static const routeName = '/signUp';
 
-  SignUpPage({Key? key}) : super(key: key);
+  const SignUpPage({Key? key}) : super(key: key);
 
   @override
   State<SignUpPage> createState() => _SignUpPageState();
@@ -18,9 +18,10 @@ class SignUpPage extends StatefulWidget {
 class _SignUpPageState extends State<SignUpPage> {
   final signInScreen = '/signIn';
   final homeScreen = '';
-  final secureStorage = FlutterSecureStorage();
+  final secureStorage = const FlutterSecureStorage();
   final controllerUsername = TextEditingController();
   final controllerPassword = TextEditingController();
+  final controllerConfirmPassword = TextEditingController();
   final controllerEmail = TextEditingController();
 
 
@@ -29,7 +30,7 @@ class _SignUpPageState extends State<SignUpPage> {
     return Scaffold(
         body: SafeArea(
       child: Padding(
-        padding: EdgeInsets.all(20),
+        padding: const EdgeInsets.all(20),
         child: Column(
           children: [
             const SizedBox(
@@ -40,7 +41,7 @@ class _SignUpPageState extends State<SignUpPage> {
               height: 20,
             ),
             Padding(
-              padding: EdgeInsets.only(
+              padding: const EdgeInsets.only(
                 top: 10,
               ),
               child: TextField(
@@ -48,11 +49,11 @@ class _SignUpPageState extends State<SignUpPage> {
                 keyboardType: TextInputType.text,
                 textCapitalization: TextCapitalization.none,
                 autocorrect: false,
-                decoration: InputDecoration(hintText: 'Name'),
+                decoration: const InputDecoration(hintText: 'Name'),
               ),
             ),
             Padding(
-              padding: EdgeInsets.only(
+              padding: const EdgeInsets.only(
                 top: 10,
               ),
               child: TextField(
@@ -60,11 +61,11 @@ class _SignUpPageState extends State<SignUpPage> {
                 keyboardType: TextInputType.emailAddress,
                 textCapitalization: TextCapitalization.none,
                 autocorrect: false,
-                decoration: InputDecoration(hintText: 'E-mail'),
+                decoration: const InputDecoration(hintText: 'E-mail'),
               ),
             ),
             Padding(
-              padding: EdgeInsets.only(
+              padding: const EdgeInsets.only(
                 top: 10,
               ),
               child: TextField(
@@ -73,25 +74,34 @@ class _SignUpPageState extends State<SignUpPage> {
                 keyboardType: TextInputType.text,
                 textCapitalization: TextCapitalization.none,
                 autocorrect: false,
-                decoration: InputDecoration(hintText: 'Password'),
+                decoration: const InputDecoration(hintText: 'Password'),
               ),
             ),
-            const Padding(
+            Padding(
               padding: EdgeInsets.only(top: 10, bottom: 10),
               child: TextField(
+                controller: controllerConfirmPassword,
+                obscureText: true,
+                keyboardType: TextInputType.text,
+                textCapitalization: TextCapitalization.none,
+                autocorrect: false,
                 decoration: InputDecoration(hintText: 'Confirm password'),
               ),
             ),
             const SizedBox(
               height: 20,
             ),
-            Container(
+            SizedBox(
               width: MediaQuery.of(context).size.width,
               child: TextButton(
-                onPressed: () => doUserRegistration(),
-                child: Padding(
+                onPressed: () {
+                  doUserRegistration();
+                if (globals.isLoggedIn) {
+                  Navigator.popAndPushNamed(context, homeScreen);
+                }},
+                child: const Padding(
                   padding: EdgeInsets.only(top: 10, bottom: 10),
-                  child: const Text('Register'),
+                  child: Text('Register'),
                 ),
               ),
             ),
@@ -126,10 +136,10 @@ class _SignUpPageState extends State<SignUpPage> {
               children: [
                 ElevatedButton(
                     onPressed: () {},
-                    child: ImageIcon(AssetImage('assets/google_logo.png'))),
+                    child: const ImageIcon(AssetImage('assets/google_logo.png'))),
                 ElevatedButton(
                     onPressed: () {},
-                    child: ImageIcon(AssetImage('assets/google_logo.png'))),
+                    child: const ImageIcon(AssetImage('assets/google_logo.png'))),
               ],
             ),
             const SizedBox(
@@ -138,10 +148,10 @@ class _SignUpPageState extends State<SignUpPage> {
             RichText(
                 text: TextSpan(
                   children: [
-                    TextSpan(text: 'Already have an account? '),
+                    const TextSpan(text: 'Already have an account? '),
                     TextSpan(
                         text: 'Sign in',
-                        style: TextStyle(color: Colors.blue),
+                        style: const TextStyle(color: Colors.blue),
                         recognizer: TapGestureRecognizer()
                           ..onTap = () { Navigator.popAndPushNamed(context, signInScreen); }
                     ),
@@ -178,6 +188,12 @@ class _SignUpPageState extends State<SignUpPage> {
     final username = controllerUsername.text.trim();
     final email = controllerEmail.text.trim();
     final password = controllerPassword.text.trim();
+    final confirmPassword = controllerConfirmPassword.text.trim();
+
+    if (password.compareTo(confirmPassword) != 0) {
+      showError("Don't confirm password. Check you password!");
+      return;
+    }
 
     final user = ParseUser.createUser(username, password, email);
 
@@ -186,14 +202,13 @@ class _SignUpPageState extends State<SignUpPage> {
     if (response.success) {
       globals.isLoggedIn = true;
       globals.userName = username;
-      globals.userEmail = email;
       globals.userId = response.result.objectId;
       globals.sessionToken = response.result.sessionToken;
 
+      globals.userData();
+
       await secureStorage.write(key: 'KEY_USERNAME', value: username);
       await secureStorage.write(key: 'KEY_PASSWORD', value: password);
-
-      Navigator.popAndPushNamed(context, homeScreen);
     } else {
       showError(response.error!.message);
     }

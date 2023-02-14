@@ -1,10 +1,12 @@
 
 class Restaurant {
+  final String objectId;
   final String title;
   final String image;
   final List<String> images;
 
   Restaurant({
+    required this.objectId,
     required this.title,
     required this.image,
     required this.images,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:menu/user_area.dart';
 import 'package:parse_server_sdk_flutter/parse_server_sdk.dart';
 
 import 'signup.dart';
@@ -8,6 +9,7 @@ import 'globals.dart' as globals;
 import 'restaurant_area.dart';
 import 'restaurant_page.dart';
 import 'restaurants_area.dart';
+import 'qr_code_scanner_area.dart';
 import 'data.dart';
 
 String firstScreen = '/signUp';
@@ -36,7 +38,7 @@ void main() async {
       globals.userName = username;
       globals.userId = response.result.objectId;
       globals.sessionToken = response.result.sessionToken;
-
+      globals.userData();
       firstScreen = homeScreen;
     }
   }
@@ -120,7 +122,7 @@ class MyApp extends StatelessWidget {
 
           return MaterialPageRoute(
             builder: (context) {
-              return RestaurantPage(restaurant: args.restaurant);
+              return RestaurantPage(restaurant: args.restaurant, tableId: '',);
             },
           );
         }
@@ -134,7 +136,8 @@ class MyApp extends StatelessWidget {
 
 class ScreenArguments {
   final Restaurant restaurant;
-  ScreenArguments(this.restaurant);
+  final String tableId;
+  ScreenArguments(this.restaurant, this.tableId);
 }
 
 class HomePage extends StatefulWidget {
@@ -167,14 +170,14 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
       body: IndexedStack(
-        children: <Widget>[
-          RestaurantsArea(),
-          RestaurantArea(),
-          Center(child: Text('Error page not found!')),
-          Center(child: Text('Error page not found!')),
-          Center(child: Text('Error page not found!')),
-        ],
         index: _selectedIndex,
+        children: <Widget>[
+          const RestaurantsArea(),
+          RestaurantArea(),
+          QrCodeArea(active: _selectedIndex == 2,),
+          Center(child: Text('Error page not found!')),
+          const UserArea(),
+        ],
       ),
       bottomNavigationBar: BottomNavigationBar(
         iconSize: 30,
@@ -211,9 +214,10 @@ class _HomePageState extends State<HomePage> {
         onTap: (index) {
           setState(() {
             _selectedIndex = index;
-          });
+          }
+        );
         }
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      ),
     );
   }
 }
