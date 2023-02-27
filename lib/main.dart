@@ -3,6 +3,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:menu/user_area.dart';
 import 'package:parse_server_sdk_flutter/parse_server_sdk.dart';
 
+import 'favourites_area.dart';
 import 'signup.dart';
 import 'signin.dart';
 import 'globals.dart' as globals;
@@ -20,6 +21,7 @@ String signInScreen= '/signIn';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   const keyApplicationId = 'UeTIruYYIWfOi22mUZZazYuHbypvfFJEvVZx8wSw';
   const keyClientKey = 'b1uUf8FFJuTetVaxcZn03f9nYNNfpLYfHgwhYmks';
   const keyParseServerUrl = 'https://parseapi.back4app.com';
@@ -38,27 +40,29 @@ void main() async {
       globals.userName = username;
       globals.userId = response.result.objectId;
       globals.sessionToken = response.result.sessionToken;
-      globals.userData();
+
+      await globals.userData();
       firstScreen = homeScreen;
     }
   }
+
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
   MyApp({super.key});
 
-  final MaterialColor appColor = const MaterialColor(0xff5FC27D, <int, Color>{
-    50: Color.fromRGBO(95, 194, 125, .1),
-    100: Color.fromRGBO(95, 194, 125, .2),
-    200: Color.fromRGBO(95, 194, 125, .3),
-    300: Color.fromRGBO(95, 194, 125, .4),
-    400: Color.fromRGBO(95, 194, 125, .5),
-    500: Color.fromRGBO(95, 194, 125, .6),
-    600: Color.fromRGBO(95, 194, 125, .7),
-    700: Color.fromRGBO(95, 194, 125, .8),
-    800: Color.fromRGBO(95, 194, 125, .0),
-    900: Color.fromRGBO(95, 194, 125, 1),
+  final MaterialColor appColor = const MaterialColor(0xffd5c340, <int, Color>{
+    50: Color.fromRGBO(213, 195, 64, .1),
+    100: Color.fromRGBO(213, 195, 64, .2),
+    200: Color.fromRGBO(213, 195, 64, .3),
+    300: Color.fromRGBO(213, 195, 64, .4),
+    400: Color.fromRGBO(213, 195, 64, .5),
+    500: Color.fromRGBO(213, 195, 64, .6),
+    600: Color.fromRGBO(213, 195, 64, .7),
+    700: Color.fromRGBO(213, 195, 64, .8),
+    800: Color.fromRGBO(213, 195, 64, .9),
+    900: Color.fromRGBO(213, 195, 64, 1),
   });
 
   // This widget is the root of your application.
@@ -69,26 +73,14 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSwatch(
           primarySwatch: appColor,
-          backgroundColor: const Color.fromRGBO(27, 27, 27, 1),
+          backgroundColor: const Color.fromRGBO(19, 19, 19, 1),
         ),
-        scaffoldBackgroundColor: const Color.fromRGBO(27, 27, 27, 1),
+        scaffoldBackgroundColor: const Color.fromRGBO(19, 19, 19, 1),
         shadowColor: const Color.fromRGBO(214, 216, 229, 1),
-        textTheme: const TextTheme(
-          displaySmall: TextStyle(color: Colors.white),
-          displayMedium: TextStyle(color: Colors.white),
-          displayLarge: TextStyle(color: Colors.white),
-          titleSmall: TextStyle(color: Colors.white),
-          titleMedium: TextStyle(color: Colors.white),
-          titleLarge: TextStyle(color: Colors.white),
-          headlineLarge: TextStyle(color: Colors.white),
-          headlineMedium: TextStyle(color: Colors.white),
-          headlineSmall: TextStyle(color: Colors.white),
-          bodySmall: TextStyle(color: Colors.white),
-          bodyMedium: TextStyle(color: Colors.white),
-          bodyLarge: TextStyle(color: Colors.white),
-          labelSmall: TextStyle(color: Colors.white),
-          labelMedium: TextStyle(color: Colors.white),
-          labelLarge: TextStyle(color: Colors.white),
+        textTheme: Theme.of(context).textTheme.apply(
+          displayColor: Colors.white,
+          bodyColor: Colors.white,
+          fontFamily: 'Roboto',
         ),
         inputDecorationTheme: const InputDecorationTheme(
           hintStyle: TextStyle(color: Colors.white),
@@ -153,29 +145,13 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.background,
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Spacer(),
-            Container(
-              height: 30,
-              child: ElevatedButton(
-                  onPressed: () {},
-                  child: Icon(Icons.notifications_none_outlined)),
-            )
-
-          ],
-        ),
-      ),
       body: IndexedStack(
         index: _selectedIndex,
         children: <Widget>[
-          const RestaurantsArea(),
-          RestaurantArea(),
-          QrCodeArea(active: _selectedIndex == 2,),
           Center(child: Text('Error page not found!')),
+          const RestaurantsArea(),
+          QrCodeArea(active: _selectedIndex == 2,),
+          const FavouritesArea(),
           const UserArea(),
         ],
       ),

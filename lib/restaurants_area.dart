@@ -1,11 +1,14 @@
 import 'dart:convert';
 
+import 'package:animation_search_bar/animation_search_bar.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:menu/data.dart';
 import 'package:menu/main.dart';
 import 'package:parse_server_sdk_flutter/parse_server_sdk.dart';
+
+import 'groups/restaurant_groups.dart';
 
 String homeScreen = '/';
 String restaurantScreen = '/restaurant';
@@ -32,92 +35,6 @@ Future<List<ParseObject>> getRestaurants(restaurantIds) async {
     return apiResponse.results as List<ParseObject>;
   } else {
     return [];
-  }
-}
-
-class RestaurantsGroup extends StatelessWidget {
-  final RestaurantGroup group;
-
-  const RestaurantsGroup({Key? key, required this.group}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 230,
-      child: Padding(
-        padding: const EdgeInsets.all(3),
-        child: Column(
-          children: [
-            const SizedBox(
-              height: 12,
-            ),
-            Padding(
-              padding: const EdgeInsets.only(left: 20),
-              child: Container(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  group.title,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
-            const SizedBox(
-              height: 3,
-            ),
-            Expanded(
-              child: FutureBuilder<List<ParseObject>>(
-                future: getRestaurants(group.restaurantIds),
-                builder: (context, snapshot) {
-                  switch (snapshot.connectionState) {
-                    case ConnectionState.none:
-                    case ConnectionState.waiting:
-                      return Center(
-                        child: Container(
-                          width: 100,
-                          height: 100,
-                          child: CircularProgressIndicator(),
-                        ),
-                      );
-                    default:
-                      if (snapshot.hasError) {
-                        return const Center(
-                          child: Text("Error get data!"),
-                        );
-                      }
-                      if (!snapshot.hasData) {
-                        return const Center(
-                          child: Text("No Data..."),
-                        );
-                      } else {
-                        return ListView.builder(
-                          padding: const EdgeInsets.all(5),
-                          scrollDirection: Axis.horizontal,
-                          itemCount: snapshot.data!.length,
-                          itemBuilder: (BuildContext context, int index) {
-                            List<String> images = List<String>.from(
-                                snapshot.data![index].get("images") ?? []);
-                            Restaurant resTemp = Restaurant(
-                              objectId: snapshot.data![index].get("objectId"),
-                              title: snapshot.data![index].get("title"),
-                              image: images.isNotEmpty
-                                  ? images[0]
-                                  : "assets/loading.gif",
-                              images: images,
-                            );
-                            return RestaurantItem(
-                              restaurant: resTemp,
-                            );
-                          },
-                        );
-                      }
-                  }
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }
 
@@ -149,13 +66,12 @@ class RestaurantItem extends StatelessWidget {
                 height: 120,
                 fit: BoxFit.cover,
                 imageUrl: restaurant.image,
-                placeholder: (context, url) =>
-                    Image.asset(
-                      'assets/loading.gif',
-                      width: MediaQuery.of(context).size.width,
-                      height: 120,
-                      fit: BoxFit.cover,
-                    ),
+                placeholder: (context, url) => Image.asset(
+                  'assets/loading.gif',
+                  width: MediaQuery.of(context).size.width,
+                  height: 120,
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
             Padding(
@@ -198,53 +114,103 @@ class RestaurantsArea extends StatefulWidget {
 }
 
 class _RestaurantsAreaState extends State<RestaurantsArea> {
+  String searchValue = '';
+  TextEditingController textController = TextEditingController();
+  final List<String> _countries = [
+    'Afeganistan',
+    'Albania',
+    'Algeria',
+    'Australia',
+    'Brazil',
+    'German',
+    'Madagascar',
+    'Mozambique',
+    'Portugal',
+    'Zambia'
+  ];
+  late TextEditingController controller;
+  late List<String> countries = _countries;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: SafeArea(
-        child: FutureBuilder<List<ParseObject>>(
-            future: getRestaurantsGroups(),
-            builder: (context, snapshot) {
-              switch (snapshot.connectionState) {
-                case ConnectionState.none:
-                case ConnectionState.waiting:
-                  return Center(
-                    child: Container(
-                      width: 100,
-                      height: 100,
-                      child: const CircularProgressIndicator(),
-                    ),
-                  );
-                default:
-                  if (snapshot.hasError) {
-                    return const Center(
-                      child: Text("Error get data!"),
-                    );
-                  }
-                  if (!snapshot.hasData) {
-                    return const Center(
-                      child: Text("No Data..."),
-                    );
-                  } else {
-                    return ListView.builder(
-                      scrollDirection: Axis.vertical,
-                      itemCount: snapshot.data!.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        List<String> restaurantIds = List<String>.from(
-                            snapshot.data![index].get("restaurants"));
-                        RestaurantGroup groupTemp = RestaurantGroup(
-                          title: snapshot.data![index].get("title"),
-                          restaurantIds: restaurantIds,
-                        );
-                        return RestaurantsGroup(group: groupTemp);
-                      },
-                    );
-                  }
-              }
-            }
+    return SafeArea(
+      child: Scaffold(
+        appBar: PreferredSize(
+          preferredSize: const Size(double.infinity, 65),
+          child: SafeArea(
+            child: Container(
+              decoration: const BoxDecoration(
+                  color: Color.fromRGBO(37, 37, 37, 1),
+                  boxShadow: [
+                    BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 5,
+                        spreadRadius: 0,
+                        offset: Offset(0, 5))
+                  ]),
+              alignment: Alignment.center,
+              child: AnimationSearchBar(
+                  isBackButtonVisible: false,
+                  centerTitle: 'App Title',
+                  onChanged: (text) {
+                    countries = _countries
+                        .where(
+                            (e) => e.toLowerCase().contains(text.toLowerCase()))
+                        .toList();
+                    setState(() {});
+                  },
+                  searchTextEditingController: textController,
+                  horizontalPadding: 5),
             ),
+          ),
+        ),
+        extendBodyBehindAppBar: true,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        body: SafeArea(
+          child: Stack(children: [
+            FutureBuilder<List<ParseObject>>(
+                future: getRestaurantsGroups(),
+                builder: (context, snapshot) {
+                  switch (snapshot.connectionState) {
+                    case ConnectionState.none:
+                    case ConnectionState.waiting:
+                      return Center(
+                        child: Container(
+                          width: 100,
+                          height: 100,
+                          child: const CircularProgressIndicator(),
+                        ),
+                      );
+                    default:
+                      if (snapshot.hasError) {
+                        return const Center(
+                          child: Text("Error get data!"),
+                        );
+                      }
+                      if (!snapshot.hasData) {
+                        return const Center(
+                          child: Text("No Data..."),
+                        );
+                      } else {
+                        return ListView.builder(
+                          scrollDirection: Axis.vertical,
+                          itemCount: snapshot.data!.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            List<String> restaurantIds = List<String>.from(
+                                snapshot.data![index].get("restaurants"));
+                            RestaurantGroup groupTemp = RestaurantGroup(
+                              title: snapshot.data![index].get("title"),
+                              itemsSize: snapshot.data![index].get("itemsSize"),
+                              restaurantIds: restaurantIds,
+                            );
+                            return RestaurantsGroup(group: groupTemp);
+                          },
+                        );
+                      }
+                  }
+                }),
+          ]),
+        ),
       ),
     );
   }

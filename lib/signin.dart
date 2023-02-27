@@ -15,7 +15,7 @@ class SignInPage extends StatefulWidget {
 
 class _SignInPageState extends State<SignInPage> {
   final signUpScreen = '/signUp';
-  final homeScreen = '';
+  final homeScreen = '/';
   final secureStorage = const FlutterSecureStorage();
   final controllerPassword = TextEditingController();
   final controllerUsername = TextEditingController();
@@ -68,9 +68,6 @@ class _SignInPageState extends State<SignInPage> {
                   child: TextButton(
                     onPressed: () {
                       doUserLogin();
-                      if (globals.isLoggedIn) {
-                        Navigator.popAndPushNamed(context, homeScreen);
-                      }
                       },
                     child: const Padding(
                       padding: EdgeInsets.only(top: 10, bottom: 10),
@@ -129,10 +126,14 @@ class _SignInPageState extends State<SignInPage> {
       globals.userId = response.result.objectId;
       globals.sessionToken = response.result.sessionToken;
 
-      globals.userData();
+      await globals.userData();
 
       await secureStorage.write(key: 'KEY_USERNAME', value: username);
       await secureStorage.write(key: 'KEY_PASSWORD', value: password);
+
+      if (globals.isLoggedIn) {
+        await Navigator.popAndPushNamed(context, homeScreen);
+      }
     } else {
       showError(response.error!.message);
     }

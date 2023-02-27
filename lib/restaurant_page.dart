@@ -6,9 +6,10 @@ import 'package:menu/data.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:parse_server_sdk_flutter/parse_server_sdk.dart';
 
-Future<List<ParseObject>> getDishGroups() async {
+Future<List<ParseObject>> getDishGroups(restaurantId) async {
   QueryBuilder<ParseObject> queryDishGroups =
-      QueryBuilder<ParseObject>(ParseObject('DishGroup'));
+      QueryBuilder<ParseObject>(ParseObject('DishGroup'))
+        ..whereEqualTo('restaurantId', restaurantId);
   final ParseResponse apiResponse = await queryDishGroups.query();
 
   if (apiResponse.success && apiResponse.results != null) {
@@ -22,7 +23,7 @@ Future<List<ParseObject>> getDishes(restaurantId, groupId) async {
   QueryBuilder<ParseObject> queryDishes =
       QueryBuilder<ParseObject>(ParseObject('Dish'))
         ..whereEqualTo('restaurantId', restaurantId)
-        ..whereContains('dishGroupIds', groupId)
+        ..whereContains('dishGroups', groupId)
         ..whereEqualTo('inStopList', false);
   final ParseResponse apiResponse = await queryDishes.query();
 
@@ -46,7 +47,7 @@ class MenuItem extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       child: Container(
         width: MediaQuery.of(context).size.width,
-        height: 250,
+        height: 240,
         decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.background,
             borderRadius: const BorderRadius.all(Radius.circular(20)),
@@ -62,13 +63,14 @@ class MenuItem extends StatelessWidget {
             borderRadius: BorderRadius.all(Radius.circular(20)),
             child: FadeInImage.assetNetwork(
               width: MediaQuery.of(context).size.width,
+              height: 240,
               fit: BoxFit.cover,
               image: _dish.image,
               placeholder: 'assets/loading.gif',
             ),
           ),
           Positioned(
-            top: 200,
+            top: 190,
             height: 50,
             width: MediaQuery.of(context).size.width,
             child: ClipRRect(
@@ -221,12 +223,13 @@ class _RestaurantPageState extends State<RestaurantPage> {
 
   @override
   Widget build(BuildContext context) {
+    var appBar = AppBar(
+      // Here we take the value from the MyHomePage object that was created by
+      // the App.build method, and use it to set our appbar title.
+      title: Text(widget.restaurant.title),
+    );
     return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.restaurant.title),
-      ),
+      appBar: appBar,
       body: SafeArea(
         child: ListView(
           children: [
@@ -241,7 +244,7 @@ class _RestaurantPageState extends State<RestaurantPage> {
                         int pageViewIndex) {
                       return Container(
                         width: MediaQuery.of(context).size.width,
-                        height: 250,
+                        height: 290,
                         child: ClipRRect(
                           child: FadeInImage.assetNetwork(
                             fit: BoxFit.cover,
@@ -269,100 +272,137 @@ class _RestaurantPageState extends State<RestaurantPage> {
               ),
             ),
             SizedBox(
-              height: 600,
+              height: MediaQuery.of(context).size.height -appBar.preferredSize.height,
               child: FutureBuilder(
-                future: getDishGroups(),
-                builder: (context, snapshot) {
-                  switch (snapshot.connectionState) {
-                    case ConnectionState.none:
-                    case ConnectionState.waiting:
-                      return Center(
-                        child: Container(
-                          width: 100,
-                          height: 100,
-                          child: CircularProgressIndicator(),
-                        ),
-                      );
-                    default:
-                      if (snapshot.hasError) {
-                        return const Center(
-                          child: Text("Error get data!"),
-                        );
-                      }
-                      if (!snapshot.hasData) {
-                        return const Center(
-                          child: Text("No Data..."),
-                        );
-                      } else {
-                        return CarouselSlider.builder(
-                          itemCount: snapshot.data!.length,
-                          itemBuilder: (BuildContext context, int groupIndex, int pageViewIndex) {
-                            return SizedBox(
-                              height: 600,
-                                child: FutureBuilder(
-                                future: getDishes(widget.restaurant.objectId,
-                                    snapshot.data![groupIndex].get('objectId')),
-                                builder: (context, itemSnapshot) {
-                                  switch (itemSnapshot.connectionState) {
-                                    case ConnectionState.none:
-                                    case ConnectionState.waiting:
-                                      return Center(
-                                        child: Container(
-                                          width: 100,
-                                          height: 100,
-                                          child: CircularProgressIndicator(),
-                                        ),
-                                      );
-                                    default:
-                                      if (itemSnapshot.hasError) {
-                                        return const Center(
-                                          child: Text("Error get data!"),
-                                        );
-                                      }
-                                      if (!itemSnapshot.hasData) {
-                                        return const Center(
-                                          child: Text("No Data..."),
-                                        );
-                                      } else {
-                                        return SizedBox(
-                                          height: 600,
-                                          child: ListView.builder(
-                                          shrinkWrap: true,
-                                          physics: ClampingScrollPhysics(),
-                                          scrollDirection: Axis.vertical,
-                                          itemCount: itemSnapshot.data!.length,
-                                          itemBuilder: (BuildContext context,
-                                              int itemIndex) {
-                                            return SizedBox(
-                                              height: 350,
-                                              child: MenuItem(
-                                              dish: Dish(
-                                                  title: itemSnapshot
-                                                      .data![itemIndex]
-                                                      .get('title'),
-                                                  image: itemSnapshot
-                                                      .data![itemIndex]
-                                                      .get('image')),
-                                            ),);
-                                          },
-                                        ),
-                                        );
-                                      }
-                                  }
-                                }),
-                            );
-                          },
-                          options: CarouselOptions(
-                            autoPlay: false,
-                            enlargeCenterPage: true,
-                            viewportFraction: 1,
-                            aspectRatio: 2.0,
-                            initialPage: 0,
+                  future: getDishGroups(widget.restaurant.objectId),
+                  builder: (context, snapshot) {
+                    switch (snapshot.connectionState) {
+                      case ConnectionState.none:
+                      case ConnectionState.waiting:
+                        return Center(
+                          child: Container(
+                            width: 100,
+                            height: 100,
+                            child: CircularProgressIndicator(),
                           ),
                         );
-                      }
-                  }
-                }),
+                      default:
+                        if (snapshot.hasError) {
+                          return const Center(
+                            child: Text("Error get data!"),
+                          );
+                        }
+                        if (!snapshot.hasData) {
+                          return const Center(
+                            child: Text("No Data..."),
+                          );
+                        } else {
+                          return Column(
+                            children: [
+                              SizedBox(
+                                child: DefaultTabController(
+                                  length: snapshot.data!.length,
+                                  child: SizedBox(
+                                    width: MediaQuery.of(context).size.width,
+                                    height: MediaQuery.of(context).size.height -appBar.preferredSize.height,
+                                    child: Expanded(
+                                      child: Column(
+                                        children: [
+                                          SizedBox(
+                                            height: 60,
+                                          child: TabBar(
+                                            isScrollable: true,
+                                            tabs: snapshot.data!
+                                                  .map((e) =>
+                                                      Tab(text: e.get('title')))
+                                                  .toList()),
+                                          ),
+                                          SizedBox(
+                                            width: MediaQuery.of(context).size.width,
+                                            height: MediaQuery.of(context).size.height -appBar.preferredSize.height - 60,
+                                            child: TabBarView(
+                                            children: snapshot.data!
+                                                .map(
+                                                  (e) => FutureBuilder(
+                                                        future: getDishes(
+                                                            widget.restaurant
+                                                                .objectId,
+                                                            e.get('objectId')),
+                                                        builder: (context,
+                                                            itemSnapshot) {
+                                                          switch (itemSnapshot
+                                                              .connectionState) {
+                                                            case ConnectionState
+                                                                .none:
+                                                            case ConnectionState
+                                                                .waiting:
+                                                              return Center(
+                                                                child:
+                                                                    Container(
+                                                                  width: 100,
+                                                                  height: 100,
+                                                                  child:
+                                                                      CircularProgressIndicator(),
+                                                                ),
+                                                              );
+                                                            default:
+                                                              if (itemSnapshot
+                                                                  .hasError) {
+                                                                return const Center(
+                                                                  child: Text(
+                                                                      "Error get data!"),
+                                                                );
+                                                              }
+                                                              if (!itemSnapshot
+                                                                  .hasData) {
+                                                                return const Center(
+                                                                  child: Text(
+                                                                      "No Data..."),
+                                                                );
+                                                              } else {
+                                                                return ListView
+                                                                        .builder(
+                                                                      shrinkWrap:
+                                                                          true,
+                                                                      physics:
+                                                                          ClampingScrollPhysics(),
+                                                                      scrollDirection:
+                                                                          Axis.vertical,
+                                                                      itemCount: itemSnapshot
+                                                                          .data!
+                                                                          .length,
+                                                                      itemBuilder:
+                                                                          (BuildContext context,
+                                                                              int itemIndex) {
+                                                                        return SizedBox(
+                                                                          height:
+                                                                              280,
+                                                                          child:
+                                                                              MenuItem(
+                                                                            dish:
+                                                                                Dish(title: itemSnapshot.data![itemIndex].get('title'), image: itemSnapshot.data![itemIndex].get('images')![0]),
+                                                                          ),
+                                                                        );
+                                                                      },
+                                                                    );
+                                                              }
+                                                          }
+                                                        }),
+
+                                                )
+                                                .toList(),
+                                          ),),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        }
+                    }
+                  }),
             ),
           ],
         ),

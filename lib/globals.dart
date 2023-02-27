@@ -11,6 +11,7 @@ import 'data.dart';
     String avatar = '';
     Restaurant? thisRestaurant;
     String? thisTableId;
+    bool acceptQrScanning = true;
 
     Future<void> userData() async {
         QueryBuilder<ParseObject> queryUser =
